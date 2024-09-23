@@ -1,16 +1,21 @@
 const express = require("express");
-const { MongoClient } = require("mongodb");
+const {
+    MongoClient
+} = require("mongodb");
 const bodyParser = require("body-parser");
 const session = require("express-session");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const path = require("path");
 
-const mongoose = require('mongoose');
-// mongoose.connect("mongodb://localhost:27017/demo");
-mongoose.connect("mongodb+srv://bolaga1231:asd123@customer0.u4d8l.mongodb.net/?retryWrites=true&w=majority&appName=Customer0");
-// const uri = 'mongodb://127.0.0.1:27017/Movie'; // MongoDB connection URI
-const client = new MongoClient(mongoose);
+// Kết nối tới MongoDB qua Mongoose
+mongoose.connect("mongodb+srv://bolaga1231:asd123@customer0.u4d8l.mongodb.net/?retryWrites=true&w=majority&appName=Customer0", {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    })
+    .then(() => console.log("Connected to MongoDB"))
+    .catch(err => console.error("Error connecting to MongoDB:", err));
+
 const app = express();
 
 app.set("view engine", "ejs");
@@ -18,9 +23,8 @@ app.set("views", path.join(__dirname, "views"));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
-
 
 // Use session middleware
 app.use(session({
@@ -29,7 +33,9 @@ app.use(session({
     saveUninitialized: true,
 }));
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+    extended: false
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -44,9 +50,13 @@ function isAuthenticated(req, res, next) {
 // Passport local strategy for admin
 passport.use("admin-local", new LocalStrategy((username, password, done) => {
     if (username === "Admin" && password === "12345") {
-        return done(null, { username: "Aptech" });
+        return done(null, {
+            username: "Aptech"
+        });
     }
-    return done(null, false, { message: "Incorrect admin username or password" });
+    return done(null, false, {
+        message: "Incorrect admin username or password"
+    });
 }));
 
 passport.serializeUser((user, done) => {
@@ -58,15 +68,26 @@ passport.deserializeUser((user, done) => {
 });
 
 // User local strategy
-const users = [
-    { id: 1, username: "abc", password: "123" },
-    { id: 2, username: "user1", password: "user" },
+const users = [{
+        id: 1,
+        username: "abc",
+        password: "123"
+    },
+    {
+        id: 2,
+        username: "user1",
+        password: "user"
+    },
 ];
 
 passport.use("user-local", new LocalStrategy((username, password, done) => {
     const user = users.find(u => u.username === username);
-    if (!user) return done(null, false, { message: "Incorrect username." });
-    if (user.password !== password) return done(null, false, { message: "Incorrect password." });
+    if (!user) return done(null, false, {
+        message: "Incorrect username."
+    });
+    if (user.password !== password) return done(null, false, {
+        message: "Incorrect password."
+    });
     return done(null, user);
 }));
 
@@ -140,11 +161,15 @@ async function main() {
         app.get("/get-movies", async (req, res) => {
             const category = req.query.category;
             try {
-                const movies = await collection.find({ Category: category }).toArray();
+                const movies = await collection.find({
+                    Category: category
+                }).toArray();
                 res.status(200).json(movies);
             } catch (error) {
                 console.error("Error fetching movies:", error);
-                res.status(500).json({ error: "Failed to fetch movies" });
+                res.status(500).json({
+                    error: "Failed to fetch movies"
+                });
             }
         });
 
@@ -154,25 +179,33 @@ async function main() {
                 res.status(200).json(movies);
             } catch (error) {
                 console.error("Error fetching movies:", error);
-                res.status(500).json({ error: "Failed to fetch movies" });
+                res.status(500).json({
+                    error: "Failed to fetch movies"
+                });
             }
         });
 
         app.get("/get-movie-details", async (req, res) => {
             const movieName = req.query.name;
             try {
-                const movie = await collection.findOne({ "Movie name": movieName });
+                const movie = await collection.findOne({
+                    "Movie name": movieName
+                });
                 if (movie) {
                     res.status(200).json({
                         Description: movie["Description"],
                         Actors: movie["Actors"],
                     });
                 } else {
-                    res.status(404).json({ error: "Movie not found" });
+                    res.status(404).json({
+                        error: "Movie not found"
+                    });
                 }
             } catch (error) {
                 console.error("Error fetching movie details:", error);
-                res.status(500).json({ error: "Failed to fetch movie details" });
+                res.status(500).json({
+                    error: "Failed to fetch movie details"
+                });
             }
         });
 
@@ -193,17 +226,22 @@ async function main() {
             const movieNameToBook = req.body["Movie name"];
             const seatsToBook = parseInt(req.body["seats-to-book"]);
             try {
-                const existingMovie = await collection.findOne({ "Movie name": movieNameToBook });
+                const existingMovie = await collection.findOne({
+                    "Movie name": movieNameToBook
+                });
                 if (!existingMovie) {
                     return res.send("Movie not found in the database.");
                 }
                 const availableSeats = existingMovie["Available Seats"];
                 if (seatsToBook <= availableSeats) {
                     const updatedAvailableSeats = availableSeats - seatsToBook;
-                    const result = await collection.updateOne(
-                        { "Movie name": movieNameToBook },
-                        { $set: { "Available Seats": updatedAvailableSeats } }
-                    );
+                    const result = await collection.updateOne({
+                        "Movie name": movieNameToBook
+                    }, {
+                        $set: {
+                            "Available Seats": updatedAvailableSeats
+                        }
+                    });
                     const redirectRoute = isAdmin ? '/admin-dashboard' : '/user-dashboard';
                     if (result.modifiedCount === 1) {
                         const alertMessage = `Booking successful for ${seatsToBook} seat(s) in ${movieNameToBook}`;
@@ -229,11 +267,15 @@ async function main() {
         app.post("/delete-movie", async (req, res) => {
             const movieNameToDelete = req.body["Movie name"];
             try {
-                const existingMovie = await collection.findOne({ "Movie name": movieNameToDelete });
+                const existingMovie = await collection.findOne({
+                    "Movie name": movieNameToDelete
+                });
                 if (!existingMovie) {
                     return res.send("Movie not found in the database");
                 }
-                const result = await collection.deleteOne({ "Movie name": movieNameToDelete });
+                const result = await collection.deleteOne({
+                    "Movie name": movieNameToDelete
+                });
                 if (result.deletedCount === 1) {
                     res.send('<script>alert("Movie deleted successfully"); window.location.href = "/admin-dashboard";</script>');
                 } else {
@@ -250,14 +292,19 @@ async function main() {
             const movieNameToUpdate = req.body["Movie name"];
             const newAvailableSeats = parseInt(req.body["Available Seats"]);
             try {
-                const existingMovie = await collection.findOne({ "Movie name": movieNameToUpdate });
+                const existingMovie = await collection.findOne({
+                    "Movie name": movieNameToUpdate
+                });
                 if (!existingMovie) {
                     return res.send('<script>alert("Movie not found in the database"); window.location.href = "/";</script>');
                 }
-                const result = await collection.updateOne(
-                    { _id: existingMovie._id },
-                    { $set: { "Available Seats": newAvailableSeats } }
-                );
+                const result = await collection.updateOne({
+                    _id: existingMovie._id
+                }, {
+                    $set: {
+                        "Available Seats": newAvailableSeats
+                    }
+                });
                 if (result.modifiedCount === 1) {
                     const alertMessage = `Updated available seats for ${movieNameToUpdate} successfully`;
                     res.send(`<script>alert("${alertMessage}"); window.location.href = "/admin-dashboard";</script>`);

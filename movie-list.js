@@ -8,6 +8,8 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const path = require("path");
 
+const mongoose = require('mongoose');
+
 // Kết nối tới MongoDB qua Mongoose
 mongoose.connect("mongodb+srv://bolaga1231:asd123@customer0.u4d8l.mongodb.net/?retryWrites=true&w=majority&appName=Customer0", {
         useNewUrlParser: true,

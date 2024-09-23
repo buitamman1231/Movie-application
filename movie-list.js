@@ -6,11 +6,11 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const path = require("path");
 
-const uri = require('mongoose');
+const mongoose = require('mongoose');
 // mongoose.connect("mongodb://localhost:27017/demo");
-uri.connect("mongodb+srv://bolaga1231:asd123@customer0.u4d8l.mongodb.net/?retryWrites=true&w=majority&appName=Customer0");
+mongoose.connect("mongodb+srv://bolaga1231:asd123@customer0.u4d8l.mongodb.net/?retryWrites=true&w=majority&appName=Customer0");
 // const uri = 'mongodb://127.0.0.1:27017/Movie'; // MongoDB connection URI
-const client = new MongoClient(uri);
+const client = new MongoClient(mongoose);
 const app = express();
 
 app.set("view engine", "ejs");
